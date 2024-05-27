@@ -30,7 +30,11 @@ def sem(sem_data, sem_data1, semfixedhr, count, check):
     print(total_lecture + total_practical)
     print(semfixedhr)
 
-    semdifdiv = semdif // (sem_data.shape[0] - count)
+    try:
+        semdifdiv = semdif // (sem_data.shape[0] - count)
+    except ZeroDivisionError:
+         return sem_data
+
     semdifmod = semdif % (sem_data.shape[0] - count)
     print(semdif, "\t semdif")
     print(semdifdiv, "\t semdifdiv")
@@ -353,7 +357,7 @@ def main():
             st.write(sem_data)
 
             sem7fixedhr = 0
-            sem7 = load_semester_data('sem7')
+            sem7 = load_semester_data('3')
 
             LIB4 = st.text_input('Enter LIB4 Allocated Hour (e.g.1-1,1-2,4-5,4-6):', sem7['LIB4'])
             sem7fixedhr += 0 if not LIB4 else len(LIB4.split(','))
