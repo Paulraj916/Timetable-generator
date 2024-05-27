@@ -2,23 +2,23 @@ course code,course title,credit,practical,lecture,A,B,lab_a,lab_b
 
 CS3452,Theory of Computation,3.0,0,5,C,M,None,None
 
-CS3491,Artificial Intelligence and Machine Learning,4.0,2,4,Q,O,QR,OT
+CS3491,Artificial Intelligence and Machine Learning,4.0,2,4,Q,O,QT,PT
 
 CS3492,Database Management Systems,4.5,3,5,G,I,GI,IG
 
 CS3401,Algorithms,4.0,2,4,O,H,OH,HT
 
-CS3451,Introduction to Operating Systems,4.5,3,4,D,P,DP,DP
+CS3451,Introduction to Operating Systems,4.5,3,4,D,P,DP,PD
 
 GE3451,Environmental Sciences and Sustainability,2.0,0,3,U,V,None,None
 
-CCS356,Object Oriented Software Engineering,4.0,2,5,A,P,CN,ME
+CCS356,Object Oriented Software Engineering,4.0,2,5,A,P,CM,EM
 
-CS3691,Embedded Systems and IoT,4.0,2,5,W,X,WWKR,XXKT
+CS3691,Embedded Systems and IoT,4.0,2,4,^,_,^_KR,_^KT
 
-CCS366,Software Testing and Automation,3.0,2,3,R,K,WWRK,XXKT
+CCS332,App Development,3.0,2,4,H,Q,HE,QS
 
-CCS332,App Development,3.0,2,3,H,Q,EH,QS
+CCS366,Software Testing and Automation,3.0,2,3,R,K,RK^_,KT_^
 
 CCS370,UI and UX Design,3.0,2,3,J,S,JR,SJ
 
@@ -26,5 +26,5 @@ MX3085,"Well Being with Traditional Practices - Yoga, Ayurveda and Siddha",0.0,0
 
 OBT351,"Food, Nutrition and Health",3.0,0,3,L,L,None,None
 
-CS3811,Project Work/Internship,10.0,2,2,],[,YZ,ZY
+CS3811,Project Work/Internship,10.0,2,37,W,X,\],]\
 
