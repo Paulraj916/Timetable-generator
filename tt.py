@@ -425,7 +425,8 @@ def main():
                             for course in faculty_courses:
                                 if course['title'] in cell_value:
                                     class_name = ["II A", "II B", "III A", "III B", "IV A", "IV B"][i]
-                                    faculty_timetable.loc[day, period] = f"{course['title']}{'❤️' if course['is_lab'] else ''} ({class_name})"
+                                    is_lab_hour = '❤️' in cell_value  # Check if it's a lab hour in the original timetable
+                                    faculty_timetable.loc[day, period] = f"{course['title']}{'❤️' if is_lab_hour else ''} ({class_name})"
             
             # Replace NaN values with empty strings
             faculty_timetable = faculty_timetable.fillna('')
