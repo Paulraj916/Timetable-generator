@@ -1,5 +1,7 @@
+# tt.py
 import pandas as pd
 import streamlit as st
+import numpy as np
 
 def main():
     st.title("Timetable Generator")
@@ -54,28 +56,48 @@ def main():
     # Create the DataFrame with "NM" only for Wednesday
     data = {
         "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        **{str(i): ["NM" if d == "Wednesday" else "".join(characters) for d in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]] for i in range(1, 9)}
+        **{str(i): ["NM" if d == "Friday" else "".join(characters) for d in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]] for i in range(1, 9)}
     }
 
     # Create the DataFrame with "NM" only for Wednesday
     datanull = {
+        "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        **{str(i): ["👍" if d == "Friday" else "NULL" for d in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]] for i in range(1, 9)}
+    }
+    data2 = {
+        "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        **{str(i): ["NM" if d == "Thursday" else "".join(characters) for d in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]] for i in range(1, 9)}
+    }
+
+    # Create the DataFrame with "NM" only for Wednesday
+    datanull2 = {
+        "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        **{str(i): ["👍" if d == "Thursday" else "NULL" for d in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]] for i in range(1, 9)}
+    }
+    data3 = {
+        "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        **{str(i): ["NM" if d == "Wednesday" else "".join(characters) for d in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]] for i in range(1, 9)}
+    }
+
+    # Create the DataFrame with "NM" only for Wednesday
+    datanull3 = {
         "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
         **{str(i): ["👍" if d == "Wednesday" else "NULL" for d in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]] for i in range(1, 9)}
     }
 
     IIA = pd.DataFrame(data).set_index("Day")
     IIB = pd.DataFrame(data).set_index("Day")
-    IIIA = pd.DataFrame(data).set_index("Day")
-    IIIB = pd.DataFrame(data).set_index("Day")
-    IVA = pd.DataFrame(data).set_index("Day")
-    IVB = pd.DataFrame(data).set_index("Day")
+    IIIA = pd.DataFrame(data2).set_index("Day")
+    IIIB = pd.DataFrame(data2).set_index("Day")
+    IVA = pd.DataFrame(data3).set_index("Day")
+    IVB = pd.DataFrame(data3).set_index("Day")
 
     IIAF = pd.DataFrame(datanull).set_index("Day")
     IIBF = pd.DataFrame(datanull).set_index("Day")
-    IIIAF = pd.DataFrame(datanull).set_index("Day")
-    IIIBF = pd.DataFrame(datanull).set_index("Day")
-    IVAF = pd.DataFrame(datanull).set_index("Day")
-    IVBF = pd.DataFrame(datanull).set_index("Day")
+    IIIAF = pd.DataFrame(datanull2).set_index("Day")
+    IIIBF = pd.DataFrame(datanull2).set_index("Day")
+    IVAF = pd.DataFrame(datanull3).set_index("Day")
+    IVBF = pd.DataFrame(datanull3).set_index("Day")
 
     # Function to parse input and update timetable
     def update_timetable(df, df1, input_str, value):
@@ -130,11 +152,26 @@ def main():
                         if not all(char in all_class[i].loc[day, str(period)] for char in faculty):
                             return 1
         return 0
+    
+    # Create a DataFrame to track lab availability
+    lab_availability = pd.DataFrame(index=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], 
+                                    columns=range(1, 9), 
+                                    data=2)  # Initialize with 2 available labs for each period
+
+    def update_lab_availability(day, periods):
+        for period in periods:
+            if lab_availability.loc[day, period] > 0:
+                lab_availability.loc[day, period] -= 1
+                return True
+        return False
+
+    def check_lab_availability(day, periods):
+        return all(lab_availability.loc[day, period] > 0 for period in periods)
 
     def allocate_practicals(year, df, df_alloc, lab_key, all_allocations):
         all_class = [IIA, IIB, IIIA, IIIB, IVA, IVB]
-        pending_courses = year.to_dict('records')  # Convert DataFrame to a list of dictionaries
-        max_attempts = 10  # Maximum number of attempts to allocate a course
+        pending_courses = year.to_dict('records')
+        max_attempts = 10
         attempts = {course['course code']: 0 for course in pending_courses}
 
         while pending_courses:
@@ -149,7 +186,7 @@ def main():
 
             for index_IIA, row in df.iterrows():
                 for periods in valid_periods[course['practical']]:
-                    if is_available(row.name, periods, df_alloc):
+                    if is_available(row.name, periods, df_alloc) and check_lab_availability(row.name, periods):
                         faculties = faculty_allocate_df[faculty_allocate_df['course code'] == course['course code']][lab_key].values[0]
                         faculties = faculties.split(',')
                         if vacancy(faculties, row.name, periods, all_class, *all_allocations) == 1:
@@ -157,6 +194,7 @@ def main():
 
                         update_df_alloc(row.name, periods, df_alloc)
                         block_faculty(faculties, row.name, periods, all_class, *all_allocations)
+                        update_lab_availability(row.name, periods)
 
                         for period in periods:
                             df.at[row.name, str(period)] = course['course title']+"❤️"
@@ -182,7 +220,7 @@ def main():
 
                 for index_IIA, row in df.iterrows():
                     for periods in valid_periods[other_course['practical']]:
-                        if is_available(row.name, periods, df_alloc):
+                        if is_available(row.name, periods, df_alloc) and check_lab_availability(row.name, periods):
                             faculties = faculty_allocate_df[faculty_allocate_df['course code'] == other_course['course code']][lab_key].values[0]
                             faculties = faculties.split(',')
                             if vacancy(faculties, row.name, periods, all_class, *all_allocations) == 1:
@@ -190,6 +228,7 @@ def main():
 
                             update_df_alloc(row.name, periods, df_alloc)
                             block_faculty(faculties, row.name, periods, all_class, *all_allocations)
+                            update_lab_availability(row.name, periods)
 
                             for period in periods:
                                 df.at[row.name, str(period)] = other_course['course title']+"❤️"
@@ -304,6 +343,102 @@ def main():
     
     # Allocate practicals for all years and sections
 
+    def display_lab_hours(dataframes):
+        # Create a dictionary mapping names to DataFrames
+        df_dict = {
+            "II A": IIA,
+            "II B": IIB,
+            "III A": IIIA,
+            "III B": IIIB,
+            "IV A": IVA,
+            "IV B": IVB
+        }
+        
+        # Create a dropdown to select the DataFrame
+        selected_df_name = st.selectbox("Select a class:", list(df_dict.keys()))
+        
+        # Get the selected DataFrame
+        selected_df = df_dict[selected_df_name]
+        
+        # Function to filter and format the DataFrame
+        def filter_lab_hours(df):
+            # Create a copy of the DataFrame to avoid modifying the original
+            filtered_df = df.copy()
+            
+            # Function to process each cell
+            def process_cell(x):
+                if isinstance(x, str) and '❤️' in x:
+                    return x.replace('❤️', '')
+                return ''
+            
+            # Apply the processing function to each cell
+            filtered_df = filtered_df.map(process_cell)
+            
+            return filtered_df
+        
+        # Filter and display the selected DataFrame
+        filtered_df = filter_lab_hours(selected_df)
+        st.write(f"Lab Hours for {selected_df_name}:")
+        st.table(filtered_df)
+        st.write(filtered_df)
+
+    def display_faculty_timetable(timetables):
+        # Load faculty data
+        faculty_df = pd.read_csv("faculty_name.csv")
+        faculty_allocate_df = pd.read_csv("faculty_allocate.csv")
+        
+        # Create a dropdown to select the faculty
+        selected_faculty = st.selectbox("Select a faculty:", faculty_df['faculty_name'].tolist())
+        
+        # Get the character for the selected faculty
+        faculty_char = faculty_df[faculty_df['faculty_name'] == selected_faculty]['character'].values[0]
+        
+        # Function to get course details for a faculty
+        def get_course_details(faculty_char):
+            courses = []
+            for _, row in faculty_allocate_df.iterrows():
+                if (faculty_char in str(row['A']) or 
+                    faculty_char in str(row['B']) or 
+                    (isinstance(row['lab_a'], str) and faculty_char in row['lab_a']) or 
+                    (isinstance(row['lab_b'], str) and faculty_char in row['lab_b'])):
+                    courses.append({
+                        'code': row['course code'],
+                        'title': row['course title'],
+                        'is_lab': row['practical'] > 0
+                    })
+            return courses
+        
+        faculty_courses = get_course_details(faculty_char)
+        
+        # Function to create faculty timetable
+        def create_faculty_timetable(timetables, faculty_courses):
+            days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+            periods = range(1, 9)
+            
+            faculty_timetable = pd.DataFrame(index=days, columns=periods)
+            
+            for day in days:
+                for period in periods:
+                    for i, timetable in enumerate(timetables):
+                        cell_value = timetable.loc[day, str(period)]
+                        if isinstance(cell_value, str):
+                            for course in faculty_courses:
+                                if course['title'] in cell_value:
+                                    class_name = ["II A", "II B", "III A", "III B", "IV A", "IV B"][i]
+                                    faculty_timetable.loc[day, period] = f"{course['title']}{'❤️' if course['is_lab'] else ''} ({class_name})"
+            
+            # Replace NaN values with empty strings
+            faculty_timetable = faculty_timetable.fillna('')
+            
+            return faculty_timetable
+        
+        # Create and display the faculty timetable
+        faculty_timetable = create_faculty_timetable(timetables, faculty_courses)
+        st.write(f"Timetable for {selected_faculty}:")
+        st.table(faculty_timetable)
+        st.write(faculty_timetable)
+
+
     all_allocations = [IIAF, IIBF, IIIAF, IIIBF, IVAF, IVBF]
     allocate_practicals(year2, IIA, IIAF, 'lab_a', all_allocations)
     allocate_practicals(year2, IIB, IIBF, 'lab_b', all_allocations)
@@ -353,6 +488,7 @@ def main():
     st.markdown(IVB_html, unsafe_allow_html=True)
 
     display_faculty_allocation(year4)
+    
 
     def display_info(title, content, content_f):
         st.markdown(f"### {title}")
@@ -370,6 +506,10 @@ def main():
     display_info("IIIB", IIIB, IIIBF)
     display_info("IVA", IVA, IVAF)
     display_info("IVB", IVB, IVBF)
+
+    display_lab_hours([IIA, IIB, IIIA, IIIB, IVA, IVB])
+
+    display_faculty_timetable([IIA, IIB, IIIA, IIIB, IVA, IVB])
 
     # Adding some additional styling for better visualization
     st.markdown(
