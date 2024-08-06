@@ -1,3 +1,4 @@
+# hour_calculatiom.py
 import streamlit as st
 import pandas as pd
 import os
@@ -23,7 +24,13 @@ def sem(sem_data, sem_data1, semfixedhr, count, check):
     # Perform calculation part 2
     print(sem_data)
     total_lecture, total_practical = calculate_total_hours(sem_data)
-    semfixedhr += total_lecture + total_practical
+    semfixedhr += total_practical
+    while(semfixedhr+total_lecture>=40):
+        sem_data['lecture'] = sem_data['lecture'].apply(lambda x:x-1 if x!=0 else x)
+        total_lecture, total_practical = calculate_total_hours(sem_data)
+    
+    semfixedhr += total_lecture
+
 
     # Perform calculation part 3
     semdif = 40 - semfixedhr
